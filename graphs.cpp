@@ -32,45 +32,38 @@ typedef long long ll;
 #define max(x, y) (x > y ? x : y)
 
 template <class T>
-T **APSP(T **edges, int N);
+vector< vector<T> > APSP(vector< vector<T> > edges, int N);
 
-int max_flow(int **edges, int N, int s, int t);
+int max_flow(vector< vector<int> > edges, int N, int s, int t);
 
-int find_path(int **residual, int N, int s, int t);
+int find_path(vector< vector<int> > &residual, int N, int s, int t);
 
 void testAPSP();
 void testMaxFlow();
 
 int main() {
+    testAPSP();
     testMaxFlow();
     return 0;
 }
 
 void testAPSP() {
     int N = 3;
-    double test[3][3] = {{0, 1.1, 100}, {1000, 0, 3}, {2, 10000, 0}};
+    double test[3][3] = {{0, 1.1, 100},
+                         {1000, 0, 3},
+                         {2, 10000, 0}};
    
-    double **edges = new double*[N];
+    vector< vector<double> > edges;
     for(int i = 0; i < N; i++) {
-        edges[i] = new double[N];
-        for(int j = 0; j < N; j++) {
-            edges[i][j] = test[i][j];
-        }
+        edges.pb(vector<double>(test[i], test[i] + sizeof(test[i])/sizeof(double)));
     }
-    double **sol = APSP(edges, N);
+    vector< vector<double> > sol = APSP(edges, N);
     for(int i = 0; i < N; i++) {
         for(int j = 0; j < N; j++) {
             cout << sol[i][j] << " ";
         }
         cout << endl;
     }
-    // clean memory
-    for(int i = 0; i < N; i++) {
-        delete[] edges[i];
-        delete[] sol[i];
-    }
-    delete[] edges;
-    delete[] sol;
 }
 
 void testMaxFlow() {
@@ -81,23 +74,17 @@ void testMaxFlow() {
 
     int wt = (1 << n);
 
-    int test[4][4] = {{0, wt-1, wt, 0}, {1, 0, 1, wt}, {0, 1, 0, wt-1}, {0, 0, 1, 0}};
+    int test[4][4] = {{0, wt-1, wt, 0},
+                      {1, 0, 1, wt},
+                      {0, 1, 0, wt-1},
+                      {0, 0, 1, 0}};
 
-    int ** edges = new int*[N];
+    vector< vector<int> > edges;
     for(int i = 0; i < N; i++) {
-        edges[i] = new int[N];
-        for(int j = 0; j < N; j++) {
-            edges[i][j] = test[i][j];
-        }
+        edges.pb(vector<int>(test[i], test[i] + sizeof(test[i])/sizeof(int)));
     }
-
     int maxflow = max_flow(edges, N, 0, 3);
     cout << maxflow << endl;
-    // clean memory
-    for(int i = 0; i < N; i++) {
-        delete[] edges[i];
-    }
-    delete[] edges;
 }
 
 
@@ -109,18 +96,9 @@ void testMaxFlow() {
  * @param N     Number of vertices
  */
 template <class T>
-T **APSP(T **edges, int N) {
+vector< vector<T> > APSP(vector< vector<T> > edges, int N) {
     // Implemented Floyd-Warshall
-    T **dists = new T*[N];
-    for(int i = 0; i < N; i++) {
-        dists[i] = new T[N];
-    }
-    for(int i = 0; i < N; i++) {
-        for(int j = 0; j < N; j++) {
-            dists[i][j] = edges[i][j];
-        }
-    }
-
+    vector< vector<T> > dists = edges;
     
     for(int k = 0; k < N; k++) {
         for(int i = 0; i < N; i++) {
@@ -142,15 +120,9 @@ T **APSP(T **edges, int N) {
  * @param s     Source
  * @param t     Sink
  */
-int max_flow(int **edges, int N, int s, int t) {
+int max_flow(vector< vector<int> > edges, int N, int s, int t) {
     int result = 0;
-    int **residual = new int*[N];
-    for(int i = 0; i < N; i++) {
-        residual[i] = new int[N];
-        for(int j = 0; j < N; j++) {
-            residual[i][j] = edges[i][j];
-        }
-    }
+    vector< vector<int> > residual = edges;
     while(true) {
         int path_capacity = find_path(residual, N, s, t);
         //cout << "Aug path capacity: " << path_capacity << endl;
@@ -159,12 +131,6 @@ int max_flow(int **edges, int N, int s, int t) {
         }
         result += path_capacity;
     }
-
-    // clean up memory
-    for(int i = 0; i < N; i++) {
-        delete[] residual[i];
-    }
-    delete[] residual;
 
     return result;
 }
@@ -200,22 +166,16 @@ public:
  * @param s     Source
  * @param t     Sink
  */
-int find_path(int **residual, int N, int s, int t) {
+int find_path(vector < vector<int> > &residual, int N, int s, int t) {
     priority_queue<FlowNode, vector<FlowNode>, FlowCompare> pq;
     pq.push(FlowNode(s, (1 << 15) - 1, -1));
     int path_cap = 0;
 
     // initialize visited array
-    bool *visited = new bool[N];
-    for(int i = 0; i < N; i++) {
-        visited[i] = false;
-    }
+    vector<bool> visited(N, false);
 
     // initialize from array
-    int *from = new int[N];
-    for(int i = 0; i < N; i++) {
-        from[i] = -1;
-    }
+    vector<int> from(N, -1);
 
     while(!pq.empty()) {
         FlowNode aux = pq.top();
@@ -247,8 +207,6 @@ int find_path(int **residual, int N, int s, int t) {
         residual[where][prev] += path_cap;
         where = prev;
     }
-    delete[] visited;
-    delete[] from;
     return path_cap;
 }
 
